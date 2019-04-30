@@ -2,6 +2,7 @@ import {
   Component,
   OnInit,
   OnDestroy,
+  ViewChild,
   // ElementRef,
   // ViewChild,
   // EventEmitter,
@@ -22,6 +23,8 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
   subscription: Subscription;
   editMode = false;
   editedItemIndex: number;
+  editedItem: Ingredient;
+  @ViewChild('f') slForm: NgForm;
   // @ViewChild('nameInput') nameInputRef: ElementRef;
   // @ViewChild('amountInput') amountInputRef: ElementRef;
   // @Output() ingredientAdded = new EventEmitter<Ingredient>();
@@ -34,21 +37,38 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
         (index: number) => {
           this.editedItemIndex = index;
           this.editMode = true;
+          this.editedItem = this.slService.getIngredient(index);
+          this.slForm.setValue({
+            name: this.editedItem.name,
+            amount: this.editedItem.amount
+          });
         }
       );
   }
 
-  onAddItem(form: NgForm) {
+  onSubmit(form: NgForm) {
     // const ingName = this.nameInputRef.nativeElement.value;
     // const ingAmount = this.amountInputRef.nativeElement.value;
     // const newIngredient = new Ingredient(ingName, ingAmount);
     const value = form.value;
     const newIngredient = new Ingredient(value.name, value.amount);
     //  this.ingredientAdded.emit(newIngredient);
-
-    this.slService.addIngredient(newIngredient);
+    if (this.editMode) {
+      this.slService.updateIngrediten(this.editedItemIndex, newIngredient);
+    } else {
+      this.slService.addIngredient(newIngredient);
+    } this.editMode = false;
+    form.reset();
   }
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+  onClear() {
+    this.slForm.reset();
+    this.editMode = false;
+  }
+  onDelete( ) {
+    this.slService.deleteIngredients(this.editedItemIndex);
+    this.onClear();
   }
 }
